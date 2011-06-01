@@ -643,6 +643,43 @@ describe "OracleEnhancedAdapter" do
     end
   end
 
+  describe "going over the oracle in clause limit" do
+    before(:all) do
+      @conn = ActiveRecord::Base.connection
+    end
+    before(:each) do
+      @conn.drop_table :hands rescue nil
+      @conn.drop_table :fingers rescue nil
+      ActiveRecord::Schema.define do
+        suppress_messages do
+          create_table :hands
+          create_table :fingers do |t|
+            t.integer :integer
+            t.references :hand
+          end
+        end
+      end
+      class ::Hand < ActiveRecord::Base
+        has_many :fingers
+      end
+      class ::Finger < ActiveRecord::Base
+        belongs_to :hand
+      end
+      hand = Hand.create!
+      1001.times do
+        hand.fingers.create!
+      end
+    end
+    it "should run sql without errors" do
+      expect {
+        hand = Hand.first
+        hand.fingers.find(:all, :conditions => {:id => Finger.all})
+      }.should_not raise_exception
+    end
+  end
+
+
+
   describe "eager loading" do
     before(:all) do
       schema_define do
