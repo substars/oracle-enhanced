@@ -263,7 +263,7 @@ module ActiveRecord #:nodoc:
       def drop_sql_for_feature(type)
         short_type = type == 'materialized view' ? 'mview' : type
         join_with_statement_token(
-        select_values("select #{short_type}_name from user_#{short_type.tableize}").map do |name|
+        select_values("select #{short_type}_name from all_#{short_type.tableize} where owner=sys_context('userenv','session_user')").map do |name|
           "DROP #{type.upcase} \"#{name}\""
         end)
       end
