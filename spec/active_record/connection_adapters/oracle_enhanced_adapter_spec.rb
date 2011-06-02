@@ -670,11 +670,13 @@ describe "OracleEnhancedAdapter" do
         hand.fingers.create!
       end
     end
+
     it "should run sql without errors" do
+      pending("Not implemented in this ActiveRecord version") if ENV['RAILS_GEM_VERSION'] >= '3.0'
       expect {
         hand = Hand.first
         hand.fingers.find(:all, :conditions => {:id => Finger.all})
-      }.should_not raise_exception
+      }.should_not raise_error
     end
   end
 
