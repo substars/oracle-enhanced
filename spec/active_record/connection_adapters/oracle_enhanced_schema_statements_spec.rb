@@ -921,7 +921,9 @@ describe "OracleEnhancedAdapter schema definition" do
       tf.name.should == "percent"
       tf.virtual?.should be true
       lambda do
-        tf = TestFraction.create!(:numerator=>20, :denominator=>100)
+        tf = TestFraction.new(:numerator=>20, :denominator=>100)
+        tf.percent.should==0 # not whatever is in DATA_DEFAULT column
+        tf.save!
         tf.reload
       end.should_not raise_error
       tf.percent.to_i.should == 20
@@ -966,7 +968,7 @@ describe "OracleEnhancedAdapter schema definition" do
       @would_execute_sql.should =~ /CREATE +TABLE .* \(.*\) TABLESPACE bogus/
     end
 
-    describe "creating a table with a tablespace defaults set" do
+    describe "creating a table with tablespace defaults set" do
       after(:each) do
         @conn.drop_table :tablespace_tests rescue nil
         ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.default_tablespaces.delete(:table)
@@ -976,7 +978,7 @@ describe "OracleEnhancedAdapter schema definition" do
         @conn.create_table :tablespace_tests do |t|
           t.integer :id
         end
-        @conn.tablespace(:tablespace_tests).should == DATABASE_NON_DEFAULT_TABLESPACE
+        @would_execute_sql.should =~ /CREATE +TABLE .* \(.*\) TABLESPACE #{DATABASE_NON_DEFAULT_TABLESPACE}/
       end
     end
     
