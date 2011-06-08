@@ -79,29 +79,6 @@ module ActiveRecord
       connection.table_comment(self.table_name)
     end
 
-    def self.quote_bound_value(value) #:nodoc:
-      if value.respond_to?(:map) && !value.acts_like?(:string)
-        if value.respond_to?(:empty?) && value.empty?
-          connection.quote(nil)
-        else
-          join_quoted_values_for_condition(value.map { |v| connection.quote(v) })
-        end
-      else
-        connection.quote(value)
-      end
-    end
-
-    def self.join_quoted_values_for_condition(values)
-      return values * ',' unless values.length > connection.in_clause_length
-      values.uniq!
-      return values * ',' unless values.length > connection.in_clause_length
-
-      quoted_chunks = values.in_groups_of(connection.in_clause_length-1, false).map do |chunk|
-        "(SELECT * FROM TABLE(sys.odcinumberlist(#{chunk * ','})))"
-      end
-      quoted_chunks * " UNION "
-    end
-
     if ActiveRecord::VERSION::MAJOR < 3
       def attributes_with_quotes_with_virtual_columns(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
         virtual_columns = self.class.columns.select(& :virtual?).map(&:name)
